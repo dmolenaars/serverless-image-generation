@@ -1,0 +1,1 @@
+variable europe_region {}
