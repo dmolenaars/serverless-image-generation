@@ -10,7 +10,7 @@ from alibabacloud_oos20190601 import client, models as oos_models
 from alibabacloud_tea_openapi import models as open_api_models
 
 def is_local_environment():
-    return os.environ.get("FC_FUNCTION_NAME") is None,
+    return "FC_FUNCTION_NAME" not in os.environ
 
 def get_api_key():
     if is_local_environment():
