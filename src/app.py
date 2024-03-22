@@ -32,7 +32,7 @@ def get_api_key():
 
 
 def image_generator(description):
-    initial_prompt = f"""Generate a detailed fully English prompt that will be used for text to image generation. Base your prompt on this original description:```
+    initial_prompt = f"""Generate a detailed fully English prompt based on the description:
         ```
             {description}
         ```
