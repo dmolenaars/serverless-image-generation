@@ -1,3 +1,3 @@
 variable europe_region {
-    default = "europe-central-1"
+    default = "eu-central-1"
 }
