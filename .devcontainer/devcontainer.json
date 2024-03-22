@@ -1,0 +1,9 @@
+{
+	"name": "Python 3",
+	"image": "mcr.microsoft.com/devcontainers/python:1-3.12-bullseye",
+	"features": {
+		"ghcr.io/devcontainers/features/terraform:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2.10.1": {}
+	},
+	"postCreateCommand": "python -m pip install --user -r src/requirements.txt",
+}
