@@ -3,7 +3,7 @@ terraform {
   required_providers {
     alicloud = {
       source  = "aliyun/alicloud"
-      version = "1.218.0",
+      version = "1.219.0",
     }
   }
 }
@@ -33,7 +33,7 @@ resource "alicloud_ram_role" "fc_role" {
 }
 
 resource "alicloud_oos_secret_parameter" "api_key_parameter" {
-  secret_parameter_name = "serverless-image-generation/api-key"
+  secret_parameter_name = "serverless-image-generation/dashscope-api-key"
   value                 = "placeholder_value" # After the secret parameter is created, you can use the CLI or the console to set its value to your API key.
 }
 
@@ -90,6 +90,7 @@ resource "alicloud_fcv2_function" "fc_image_generation_function" {
   }
   ca_port = 7860
   instance_concurrency = 20
+  timeout = 600
 }
 
 resource "alicloud_fc_trigger" "http_trigger" {
@@ -105,3 +106,27 @@ resource "alicloud_fc_trigger" "http_trigger" {
     }
 EOF
 }
+
+resource "alicloud_fc_custom_domain" "custom_domain" {
+  domain_name = "genaiwithali.cloud" # Change this to your own custom domain.
+  protocol    = "HTTP" # Change this to HTTPS if you have an SSL certificate for your domain.
+  route_config {
+    path          = "/*"
+    service_name  = alicloud_fc_service.default.name
+    function_name = alicloud_fcv2_function.fc_image_generation_function.function_name
+  }
+}
+# Once you have an SSL certificate for your domain, you can use the cert_config property below to enable HTTPS for your custom domain.
+#   cert_config {
+#     cert_name   = "serverless-image-generation-certificate"
+#     certificate = <<EOF
+# -----BEGIN CERTIFICATE-----
+# ....
+# -----END CERTIFICATE-----
+#     EOF
+#     private_key = <<EOF
+# -----BEGIN RSA PRIVATE KEY-----
+# ....
+# -----END RSA PRIVATE KEY-----
+#     EOF
+#   }
