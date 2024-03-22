@@ -40,7 +40,7 @@ def image_generator(description):
         """
 
     initial_prompt_response = Generation.call(
-        model="qwen-plus",
+        model="qwen-turbo",
         prompt=initial_prompt,
     )
     text2image_prompt = initial_prompt_response.output["text"]
