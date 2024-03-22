@@ -25,7 +25,7 @@ def get_api_key():
     )
     oos_client = client.Client(config=config)
     get_secret_request = oos_models.GetSecretParameterRequest(
-        name="dashscope-api-key", with_decryption=True
+        name="serverless-image-generation/dashscope-api-key", with_decryption=True
     )
     api_key = oos_client.get_secret_parameter(get_secret_request).body.parameter.value
     return api_key
