@@ -35,21 +35,21 @@ def get_api_key():
 
 
 def image_generator(description):
-    initial_prompt = f"""Generate a detailed fully English prompt based on the description:
-        ```
-            {description}
-        ```
-        Please return the prompt only, nothing else.
-        """
+    # initial_prompt = f"""Generate a detailed fully English prompt based on the description:
+    #     ```
+    #         {description}
+    #     ```
+    #     Please return the prompt only, nothing else.
+    #     """
 
-    initial_prompt_response = Generation.call(
-        model="qwen-turbo",
-        prompt=initial_prompt,
-    )
-    text2image_prompt = initial_prompt_response.output["text"]
+    # initial_prompt_response = Generation.call(
+    #     model="qwen-turbo",
+    #     prompt=initial_prompt,
+    # )
+    # text2image_prompt = initial_prompt_response.output["text"]
     task = ImageSynthesis.async_call(
         model=ImageSynthesis.Models.wanx_v1,
-        prompt=text2image_prompt,
+        prompt=description,
         n=1,
         negative_prompt="low resolution, ugly, blurry, low quality, out of focus",
     )
