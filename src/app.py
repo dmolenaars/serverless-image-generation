@@ -9,8 +9,10 @@ from alibabacloud_credentials.client import (
 from alibabacloud_oos20190601 import client, models as oos_models
 from alibabacloud_tea_openapi import models as open_api_models
 
+
 def is_local_environment():
     return "FC_FUNCTION_NAME" not in os.environ
+
 
 def get_api_key():
     if is_local_environment():
@@ -30,41 +32,48 @@ def get_api_key():
         get_secret_request = oos_models.GetSecretParameterRequest(
             name="serverless-image-generation/dashscope-api-key", with_decryption=True
         )
-        api_key = oos_client.get_secret_parameter(get_secret_request).body.parameter.value
+        api_key = oos_client.get_secret_parameter(
+            get_secret_request
+        ).body.parameter.value
         return api_key
 
 
-def image_generator(description):
-    # initial_prompt = f"""Generate a detailed fully English prompt based on the description:
-    #     ```
-    #         {description}
-    #     ```
-    #     Please return the prompt only, nothing else.
-    #     """
-
-    # initial_prompt_response = Generation.call(
-    #     model="qwen-turbo",
-    #     prompt=initial_prompt,
-    # )
-    # text2image_prompt = initial_prompt_response.output["text"]
+def image_generator(description, image_count):
     task = ImageSynthesis.async_call(
         model=ImageSynthesis.Models.wanx_v1,
         prompt=description,
-        n=1,
+        n=image_count,
         negative_prompt="low resolution, ugly, blurry, low quality, out of focus",
     )
     text2image_prompt_response = ImageSynthesis.wait(task)
-    return gr.Image(type="pil", value=text2image_prompt_response.output.results[0].url)
+    images = [image.url for image in text2image_prompt_response.output.results]
+    return gr.Gallery(images)
+    # return gr.Image(type="pil", value=text2image_prompt_response.output.results[0].url)
 
 
 demo = gr.Interface(
     fn=image_generator,
-    inputs=["text"],
-    outputs=["image"],
+    inputs=[
+        gr.Textbox(
+            label="Description", info="The prompt that will generate the image."
+        ),
+        gr.Slider(
+            step=1,
+            minimum=1,
+            maximum=4,
+            label="Image count",
+            info="How many images would you like to generate?",
+        ),
+    ],
+    outputs=["gallery"],
     theme=gr.themes.Soft(),
-    css="footer {visibility: hidden}",
+    css="footer {visibility: hidden} output_image {height: 40rem !important; width: 100% !important;}",
     allow_flagging="never",
-    title="Serverless Image Generation with Function Compute",
+    title="Serverless Image Generation with Function Compute and Tongyi Wanxiang",
+    description="""
+        This is a serverless application that can be used to generate images from text prompts.\n
+        It runs completely on Alibaba Cloud's [Function Compute](https://www.alibabacloud.com/product/function-compute), and uses Alibaba Cloud's own generative text-to-image model, [Tongyi Wanxiang](https://tongyi.aliyun.com/wanxiang/).\n
+    """,
 )
 
 
