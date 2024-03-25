@@ -38,15 +38,15 @@ def get_api_key():
         return api_key
 
 
-def image_generator(description, image_count):
+def image_generator(prompt, image_count):
     task = ImageSynthesis.async_call(
         model=ImageSynthesis.Models.wanx_v1,
-        prompt=description,
+        prompt=prompt,
         n=image_count,
         negative_prompt="low resolution, ugly, blurry, low quality, out of focus",
     )
-    text2image_prompt_response = ImageSynthesis.wait(task)
-    images = [image.url for image in text2image_prompt_response.output.results]
+    response = ImageSynthesis.wait(task)
+    images = [image.url for image in response.output.results]
     return gr.Gallery(images)
 
 demo = gr.Interface(
