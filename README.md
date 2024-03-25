@@ -44,4 +44,6 @@ Deploy the infrastructure as follows:
 
 `terraform init && terraform apply`
 
-*Note: a custom domain name needs to be associated with the Function Compute function before you can access it through the web. Replace the placeholder `domain_name` property for the `alicloud_fc_custom_domain` resource in `modules/image_generator/main.tf` with your a domain name that you control.*
+Note: a custom domain name needs to be associated with the Function Compute function before you can access it through the web. Replace the placeholder `domain_name` property for the `alicloud_fc_custom_domain` resource in `modules/image_generator/main.tf` with your a domain name that you own.
+
+If you don't own a domain name, you can create a temporary Gradio link by setting the Gradio app launch configuration to`share=True` in `src/app.py`.  This link will be valid for 72 hours. See [here](https://github.com/huggingface/frp/) for more information.
