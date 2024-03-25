@@ -48,8 +48,6 @@ def image_generator(description, image_count):
     text2image_prompt_response = ImageSynthesis.wait(task)
     images = [image.url for image in text2image_prompt_response.output.results]
     return gr.Gallery(images)
-    # return gr.Image(type="pil", value=text2image_prompt_response.output.results[0].url)
-
 
 demo = gr.Interface(
     fn=image_generator,
