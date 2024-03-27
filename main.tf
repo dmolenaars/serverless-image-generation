@@ -8,16 +8,25 @@ terraform {
   }
 }
 
-# Provider for Europe resources
 provider "alicloud" {
-  alias = "europe"
-  region = var.europe_region
+  region = var.deployment_region
+}
+
+module "container_registry" {
+   source = "./modules/container_registry"
+   providers = {
+     alicloud: alicloud
+   }
+   deployment_region = var.deployment_region
+   namespace_id = var.namespace_id
 }
 
 module "image_generator" {
    source = "./modules/image_generator"
    providers = {
-     alicloud = alicloud.europe
+     alicloud: alicloud
    }
-   europe_region = var.europe_region
+   deployment_region = var.deployment_region
+   registry_id = module.container_registry.registry_id
+   domain_name = var.domain_name
 }
