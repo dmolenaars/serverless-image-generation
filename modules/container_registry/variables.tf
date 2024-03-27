@@ -1,2 +1,2 @@
-variable deployment_region {}
-variable namespace_id {}
+variable "deployment_region" {}
+variable "namespace_id" {}

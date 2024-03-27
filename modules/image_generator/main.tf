@@ -78,17 +78,17 @@ resource "alicloud_fc_service" "image_generation_service" {
 }
 
 resource "alicloud_fcv2_function" "fc_image_generation_function" {
-  function_name = "fc-image-generation"
-  service_name  = alicloud_fc_service.image_generation_service.name
-  memory_size   = "512"
-  runtime       = "custom-container"
-  handler       = "dummy_handler"
-  ca_port = 7860
+  function_name        = "fc-image-generation"
+  service_name         = alicloud_fc_service.image_generation_service.name
+  memory_size          = "512"
+  runtime              = "custom-container"
+  handler              = "dummy_handler"
+  ca_port              = 7860
   instance_concurrency = 20
-  timeout = 600
+  timeout              = 600
   custom_container_config {
-    web_server_mode   = true
-    image             = "registry-intl-vpc.${var.deployment_region}.aliyuncs.com/${var.registry_id}:latest"
+    web_server_mode = true
+    image           = "registry-intl-vpc.${var.deployment_region}.aliyuncs.com/${var.registry_id}:latest"
   }
 }
 
@@ -108,25 +108,17 @@ EOF
 
 resource "alicloud_fc_custom_domain" "custom_domain" {
   domain_name = var.domain_name
-  protocol    = "HTTP" # Change this to HTTPS if you have an SSL certificate for your domain.
+  protocol    = "HTTPS"
   route_config {
     path          = "/*"
     service_name  = alicloud_fc_service.image_generation_service.name
     function_name = alicloud_fcv2_function.fc_image_generation_function.function_name
   }
-# Once you have an SSL certificate for your domain, you can use the cert_config property below to enable HTTPS for your custom domain.
-# Note: directly referencing an Alibaba Cloud Certificate is not yet supported. See https://github.com/aliyun/terraform-provider-alicloud/issues/6935
-#   cert_config {
-#     cert_name   = "serverless-image-generation-certificate"
-#     certificate = <<EOF
-# -----BEGIN CERTIFICATE-----
-# ....
-# -----END CERTIFICATE-----
-#     EOF
-#     private_key = <<EOF
-# -----BEGIN RSA PRIVATE KEY-----
-# ....
-# -----END RSA PRIVATE KEY-----
-#     EOF
-#   }
+  # Once you have an SSL certificate for your domain, you can uncomment the cert_config property below to enable HTTPS for your custom domain. See the README on how to set the custom_domain_cert and custom_domain_key variables.
+  # Note: directly referencing an Alibaba Cloud Certificate is not yet supported. See https://github.com/aliyun/terraform-provider-alicloud/issues/6935
+  # cert_config {
+  #   cert_name   = "serverless-image-generation-certificate"
+  #   certificate = var.custom_domain_cert
+  #   private_key = var.custom_domain_key
+  # }
 }
