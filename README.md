@@ -30,7 +30,7 @@ If you wish to deploy resources to Alibaba Cloud, you will also need the followi
 ## Deploying locally
 For local development, set an environment variable called `DASHSCOPE_API_KEY` as follows:
 
-`export DASHSCOPE_API_KEY=<YOUR API KEY>`
+`export DASHSCOPE_API_KEY=<YOUR DASHSCOPE API KEY>`
 
 You can launch the application with the following command: 
 
@@ -48,6 +48,9 @@ In `terraform.tfvars`, replace the following properties:
 - `deployment_region`: your preferred deployment region.
 - `namespace_id`: your preferred namespace name. *Note: this name must be globally unique!* 
 - `domain_name` : the domain name that you wish to use to access the application. 
+
+Set the following environment variables:
+`export TF_VAR_api_key=<YOUR DASHSCOPE API KEY>`
 
 #### Deploying the container registry
 Deploy the container registry as follows:
@@ -74,9 +77,18 @@ Deploy the rest of the resources as follows:
 
 *Optional: enable HTTPS* 
 
+Store your SSL certificate (chain) and private key in two `pem` files.
+
+
+Set the following environment variables:
+```
+export TF_VAR_custom_domain_cert=$(cat certificate.pem)
+export TF_VAR_custom_domain_key=$(cat key.pem)
+```
+
 Navigate to the `alicloud_fc_custom_domain` resource in `modules/image_generator/main.tf`. 
 
-Set `protocol` to `HTTPS` and provide a a valid `cert_config` in `pem` format. Run `terraform apply` to apply your changes. 
+Set `protocol` to `HTTPS` and uncomment the `cert_config` property. Run `terraform apply` to apply your changes. 
 
 In your domain DNS settings, add a CNAME record that points your root domain to `<YOUR_ACCOUNT_ID>.<REGION>.fc.aliyuncs.com`. The DNS changes may take some time to propagate.
 
