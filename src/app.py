@@ -26,7 +26,7 @@ def get_api_key():
         )
         cred_client = CredClient(function_compute_config)
         config = open_api_models.Config(
-            credential=cred_client, region_id="eu-central-1"
+            credential=cred_client, region_id=os.environ.get("REGION")
         )
         oos_client = client.Client(config=config)
         get_secret_request = oos_models.GetSecretParameterRequest(
