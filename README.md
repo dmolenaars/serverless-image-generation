@@ -5,6 +5,7 @@ This is a serverless application that can be used to generate images from text p
 
 This project uses DashScope, Alibaba Cloud's Model as a Service (MaaS) platform, in combination with Alibaba Cloud's own generative text-to-image model, [Tongyi Wanxiang](https://tongyi.aliyun.com/wanxiang/).
 
+## Demo
 Looking for a live demo? Click [here](https://genaiwithali.cloud/).
 
 ## Application setup
@@ -15,35 +16,76 @@ You can also directly install the dependencies on your host machine with the fol
 
  `pip install -r ./src/requirements.txt`
 
+In addition, Terraform should be installed if you wish to deploy resources to Alibaba Cloud. See [here](https://developer.hashicorp.com/terraform/install) on how to set up Terraform on your local operating system.
 
-### Setting up environment variables
-A DashScope API key is needed. Currently, DashScope is only available to users with an Alibaba Cloud domestic account, but an international version is being worked on. You can apply for an API key [here](https://dashscope.console.aliyun.com/apiKey).
+### Requirements
+If you wish to run the application locally, you will need the following:
+- A DashScope API key. Currently, DashScope is only available to users with an Alibaba Cloud domestic account, but an international version is being worked on. You can apply for an API key [here](https://dashscope.console.aliyun.com/apiKey).
 
-#### Local development
+If you wish to deploy resources to Alibaba Cloud, you will also need the following:
+- A RAM user or role that is allowed to deploy resources and push images to the Container Registry.
+- A Personal Instance on Container Registry that is activated. In addition, your RAM user / role needs to be registered on Container Registry. You can activate an instance and register a user [here](https://cr.console.aliyun.com/).
+- A domain name that you can use as the application endpoint. If you do not have one yet, you can easily register for one through Alibaba Cloud [here](https://www.alibabacloud.com/en/domain).
+
+## Deploying locally
 For local development, set an environment variable called `DASHSCOPE_API_KEY` as follows:
 
 `export DASHSCOPE_API_KEY=<YOUR API KEY>`
 
-#### Deploying to your own Alibaba Cloud account
-If you want to use the application in your own Alibaba Cloud account, you will need to deploy the application using the provided Terraform stack, which will automatically create a secret parameter called `serverless-image-generation/dashscope-api-key`. Replace the placeholder variable in this parameter with your API key using the Alibaba Cloud console or the CLI.
-
-### Launching the application
 You can launch the application with the following command: 
 
 `python ./src/app.py`
 
 You will be able to view the application in your browser on `127.0.0.1:7860`.
 
-## Infrastructure
-The infrastructure consists of a single [Function Compute](https://www.alibabacloud.com/en/product/function-compute) function and a [CloudOps Orchestration Service](https://www.alibabacloud.com/en/product/oos) Secret Parameter that can be used to store the DashScope API key. The Function Compute role has basic permissions to access the parameter.
-
-## Deployment
+## Deploying on Alibaba Cloud
 The [`alicloud`](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs) Terraform provider is used to define and deploy the infrastructure.
+The infrastructure consists of a single [Function Compute](https://www.alibabacloud.com/en/product/function-compute) function, a [Container Registry](https://www.alibabacloud.com/en/product/container-registry) repository that stores the Function Compute image, and a [CloudOps Orchestration Service](https://www.alibabacloud.com/en/product/oos) Secret Parameter that can be used to store the DashScope API key. The Function Compute role has basic permissions to access the parameter.
 
-Deploy the infrastructure as follows:
+### Walkthrough
+#### Setting up the environment
+In `terraform.tfvars`, replace the following properties:
+- `deployment_region`: your preferred deployment region.
+- `namespace_id`: your preferred namespace name. *Note: this name must be globally unique!* 
+- `domain_name` : the domain name that you wish to use to access the application. 
 
-`terraform init && terraform apply`
+#### Deploying the container registry
+Deploy the container registry as follows:
 
-Note: a custom domain name needs to be associated with the Function Compute function before you can access it through the web. Replace the placeholder `domain_name` property for the `alicloud_fc_custom_domain` resource in `modules/image_generator/main.tf` with your a domain name that you own.
+`terraform init && terraform apply -target module.container_registry`
 
-If you don't own a domain name, you can create a temporary Gradio link by setting the Gradio app launch configuration to`share=True` in `src/app.py`.  This link will be valid for 72 hours. See [here](https://github.com/huggingface/frp/) for more information.
+#### Building and pushing the Docker image
+Log in the registry with your RAM user / role: 
+
+`docker login --username=<RAM_USER_ID>@<ACCOUNT_ID> registry-intl.<REGION_ID>.aliyuncs.com` 
+
+Build the image: 
+
+`docker build . -t registry-intl.<REGION_ID>.aliyuncs.com/<NAMESPACE_ID>/serverless-image-generation:latest --platform linux/amd64`
+
+Push the image:
+
+ `docker push registry-intl.<REGION_ID>.aliyuncs.com/<NAMESPACE_ID>/serverless-image-generation:latest`
+
+#### Deploying the image generation service
+Deploy the rest of the resources as follows:
+
+`terraform apply`
+
+*Optional: enable HTTPS* 
+
+Navigate to the `alicloud_fc_custom_domain` resource in `modules/image_generator/main.tf`. 
+
+Set `protocol` to `HTTPS` and provide a a valid `cert_config` in `pem` format. Run `terraform apply` to apply your changes. 
+
+In your domain DNS settings, add a CNAME record that points your root domain to `<YOUR_ACCOUNT_ID>.<REGION>.fc.aliyuncs.com`. The DNS changes may take some time to propagate.
+
+#### Update the Secret Parameter
+Update the Secret Parameter with your DashScope API key in the [OOS console](https://oos.console.aliyun.com/).
+
+That's it! You can now visit your application on the domain name that you specified.
+
+#### Cleaning up
+Destroy all resources:
+
+`terraform destroy`
