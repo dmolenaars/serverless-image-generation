@@ -33,7 +33,7 @@ resource "alicloud_ram_role" "fc_role" {
 
 resource "alicloud_oos_secret_parameter" "api_key_parameter" {
   secret_parameter_name = "serverless-image-generation/dashscope-api-key"
-  value                 = "placeholder_value" # After the secret parameter is created, you can use the CLI or the console to set its value to your API key.
+  value                 = var.api_key
 }
 
 resource "alicloud_ram_policy" "get_secret_parameter_policy" {
@@ -89,6 +89,9 @@ resource "alicloud_fcv2_function" "fc_image_generation_function" {
   custom_container_config {
     web_server_mode = true
     image           = "registry-intl-vpc.${var.deployment_region}.aliyuncs.com/${var.registry_id}:latest"
+  }
+  environment_variables = {
+    "REGION": var.deployment_region
   }
 }
 
