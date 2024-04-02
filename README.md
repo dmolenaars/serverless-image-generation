@@ -75,6 +75,8 @@ Deploy the rest of the resources as follows:
 
 `terraform apply`
 
+That's it! You can now visit your application on the domain name that you specified.
+
 *Optional: enable HTTPS* 
 
 Store your SSL certificate (chain) and private key in two `pem` files.
@@ -92,10 +94,6 @@ Set `protocol` to `HTTPS` and uncomment the `cert_config` property. Run `terrafo
 
 In your domain DNS settings, add a CNAME record that points your root domain to `<YOUR_ACCOUNT_ID>.<REGION>.fc.aliyuncs.com`. The DNS changes may take some time to propagate.
 
-#### Update the Secret Parameter
-Update the Secret Parameter with your DashScope API key in the [OOS console](https://oos.console.aliyun.com/).
-
-That's it! You can now visit your application on the domain name that you specified.
 
 #### Cleaning up
 Destroy all resources:
