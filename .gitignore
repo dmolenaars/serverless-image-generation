@@ -11,3 +11,7 @@
 
 # DS_Store
 .DS_Store
+
+# Any certificates and private keys
+*.pem
+*.key
