@@ -25,7 +25,9 @@ def is_local_environment():
 def set_oss_config():
     os.environ["OSS_ACCESS_KEY_ID"] = os.environ.get("ALIBABA_CLOUD_ACCESS_KEY_ID")
     os.environ["OSS_ACCESS_KEY_SECRET"] = os.environ.get("ALIBABA_CLOUD_ACCESS_KEY_SECRET")
-    os.environ["OSS_SESSION_TOKEN"] = os.environ.get("ALIBABA_CLOUD_SECURITY_TOKEN")
+    if not is_local_environment():
+        os.environ["OSS_SESSION_TOKEN"] = os.environ.get("ALIBABA_CLOUD_SECURITY_TOKEN") 
+
 
 def get_api_key():
     if is_local_environment():
@@ -151,6 +153,7 @@ with gr.Blocks() as sketch_to_image_interface:
 with gr.Blocks(
     theme=gr.themes.Soft(),
     css="footer {visibility: hidden} output_image {height: 40rem !important; width: 100% !important;}",
+    title="Serverless Image Generation with Function Compute and Tongyi Wanxiang"
 ) as demo:
     gr.Markdown(
         """
