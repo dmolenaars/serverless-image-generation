@@ -12,7 +12,7 @@ import oss2
 from oss2.credentials import EnvironmentVariableCredentialsProvider
 import uuid
 
-# When testing locally, make sure to set the environment variables OSS_ACCESS_KEY_ID, OSS_ACCESS_KEY_SECRET, BUCKET_ENDPOINT, and BUCKET_ID.
+# When testing locally, make sure to set the environment variables ALIBABA_CLOUD_ACCESS_KEY_ID, ALIBABA_CLOUD_ACCESS_KEY_SECRET, BUCKET_ENDPOINT, and BUCKET_ID.
 auth = oss2.ProviderAuth(EnvironmentVariableCredentialsProvider())
 bucket = oss2.Bucket(
     auth, os.environ.get("BUCKET_ENDPOINT"), os.environ.get("BUCKET_ID")
@@ -22,6 +22,10 @@ bucket = oss2.Bucket(
 def is_local_environment():
     return "FC_FUNCTION_NAME" not in os.environ
 
+def set_oss_config():
+    os.environ["OSS_ACCESS_KEY_ID"] = os.environ.get("ALIBABA_CLOUD_ACCESS_KEY_ID")
+    os.environ["OSS_ACCESS_KEY_SECRET"] = os.environ.get("ALIBABA_CLOUD_ACCESS_KEY_SECRET")
+    os.environ["OSS_SESSION_TOKEN"] = os.environ.get("ALIBABA_CLOUD_SECURITY_TOKEN")
 
 def get_api_key():
     if is_local_environment():
@@ -163,4 +167,5 @@ with gr.Blocks(
     )
 if __name__ == "__main__":
     dashscope.api_key = get_api_key()
+    set_oss_config()
     demo.launch(share=False, server_name="0.0.0.0")
