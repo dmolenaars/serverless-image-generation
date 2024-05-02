@@ -10,6 +10,23 @@ terraform {
 data "alicloud_account" "current" {
 }
 
+resource "random_uuid" "bucket_id" {
+}
+
+resource "alicloud_oss_bucket" "image-storage" {
+  bucket = "image-storage-${random_uuid.bucket_id.result}"
+  acl    = "private"
+  lifecycle_rule {
+    id      = "remove-stale-images"
+    prefix  = "tmp/"
+    enabled = true
+    expiration {
+      days = 1
+    }
+  }
+}
+
+
 resource "alicloud_ram_role" "fc_role" {
   name     = "fc-image-generation-role"
   document = <<EOF
@@ -59,6 +76,38 @@ resource "alicloud_ram_policy" "get_secret_parameter_policy" {
 EOF
 }
 
+resource "alicloud_ram_policy" "image_storage_policy" {
+  policy_name     = "fc-image-storage-policy"
+  policy_document = <<EOF
+{
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "oss:ListObjects",
+            "Resource": "acs:oss:oss-${var.deployment_region}:${data.alicloud_account.current.id}:${alicloud_oss_bucket.image-storage.id}"
+        },
+        {
+            "Action": [
+                "oss:GetObject",
+                "oss:PutObject"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "acs:oss:oss-${var.deployment_region}:${data.alicloud_account.current.id}:${alicloud_oss_bucket.image-storage.id}/tmp/*"
+            ]
+        }
+    ],
+    "Version": "1"
+}
+EOF
+}
+
+resource "alicloud_ram_role_policy_attachment" "image_storage_policy_attachment" {
+  policy_name = alicloud_ram_policy.image_storage_policy.policy_name
+  policy_type = alicloud_ram_policy.image_storage_policy.type
+  role_name   = alicloud_ram_role.fc_role.name
+}
+
 
 resource "alicloud_ram_role_policy_attachment" "get_secret_parameter_attachment" {
   policy_name = alicloud_ram_policy.get_secret_parameter_policy.policy_name
@@ -91,7 +140,9 @@ resource "alicloud_fcv2_function" "fc_image_generation_function" {
     image           = "registry-intl-vpc.${var.deployment_region}.aliyuncs.com/${var.registry_id}:latest"
   }
   environment_variables = {
-    "REGION": var.deployment_region
+    "REGION": var.deployment_region,
+    "BUCKET_ID": alicloud_oss_bucket.image-storage.id,
+    "BUCKET_ENDPOINT": alicloud_oss_bucket.image-storage.extranet_endpoint
   }
 }
 

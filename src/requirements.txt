@@ -3,3 +3,4 @@ dashscope
 alibabacloud_oos20190601
 alibabacloud_credentials
 alibabacloud_tea_rpc
+oss2
